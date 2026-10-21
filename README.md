@@ -1,12 +1,21 @@
 # Game Builder
 
-A terminal agent that builds games with you. Describe a game, and it pitches a plan, writes the code into your folder, runs checks, writes image prompts for the art, and tells you how to play it. It is a standalone command-line app, not a plugin for another coding tool.
+An MCP server that helps any coding agent build games. Plug it into Claude Code, Codex, Cursor, Windsurf, Gemini CLI or any other MCP client, then say "make me a game where…". Your agent does the thinking and writing with its own model; Game Builder gives it the game know-how and tools. No API key needed.
 
-```
-$ game-builder -C werewolf "a 6-player werewolf game friends can join from their phones"
-```
+It is built from real games: an anime styling game, a Backrooms crawler, a haunted hotel, a Roblox-style campus, a Unity survival-horror game, online werewolf and murder-mystery games, and a Rust terminal life sim.
 
-It knows the stacks behind real games: an anime styling game, a Backrooms crawler, a haunted hotel, a Roblox-style campus, a Unity survival-horror game, online werewolf and murder-mystery games, and a Rust terminal life sim.
+## What your agent gets
+
+| Tool | What it does |
+|---|---|
+| `plan_game` | Picks a stack for the idea and returns the playbook plus the matching stack and genre guides, so the agent can pitch before building. |
+| `get_guide` | Any stack or genre on demand: "unity", "three.js", "werewolf", "murder mystery", "platformer"… |
+| `scaffold_game` | Writes a playable starter (2D web, Three.js first person, A-Frame world) with a GitHub Pages workflow; returns setup steps for Unity, online multiplayer, Rust terminal and NPC AI projects. Never overwrites a folder. |
+| `image_prompt` | Writes a layout-exact prompt for ChatGPT or another image model, so generated sprite sheets line up with the code. |
+| `check_game` | Finds missing asset files, JavaScript syntax errors and PNG sizes. |
+| `serve_game` | Serves the game at http://127.0.0.1 so you can play it. |
+
+It also offers the guides as resources (`gamebuilder://playbook`, `gamebuilder://stacks`, `gamebuilder://genres`) and a `new_game` prompt.
 
 | Stack | Good for |
 |---|---|
@@ -18,55 +27,55 @@ It knows the stacks behind real games: an anime styling game, a Backrooms crawle
 | Rust + ratatui | terminal life sims and roguelikes |
 | Finite-state-machine NPC AI | guards, enemies and squads in any engine |
 
-Its genre guide covers 15 genres, from dress-up and platformers to social deduction, murder mystery and creature life sims. The playbook, stacks guide and genre guide live in [`gamebuilder/playbook/`](gamebuilder/playbook/).
+The genre guide covers 15 genres, from dress-up and platformers to social deduction, murder mystery and creature life sims.
 
 ## Install
 
-Needs Python 3.10+.
+Needs [uv](https://docs.astral.sh/uv/) (or Python 3.10+ with pipx). The server runs with:
 
 ```
-uv tool install git+https://github.com/wuisabel-gif/game-builder
+uvx --from git+https://github.com/wuisabel-gif/game-builder game-builder
 ```
 
-or `pipx install git+https://github.com/wuisabel-gif/game-builder`.
+Add it to your agent:
 
-## Sign in
-
-It uses Claude through the Anthropic API. Either set an API key:
-
+**Claude Code**
 ```
-export ANTHROPIC_API_KEY=sk-ant-...
+claude mcp add game-builder -- uvx --from git+https://github.com/wuisabel-gif/game-builder game-builder
 ```
 
-or sign in once with the Anthropic CLI: `ant auth login`.
+**Codex** (`~/.codex/config.toml`)
+```toml
+[mcp_servers.game-builder]
+command = "uvx"
+args = ["--from", "git+https://github.com/wuisabel-gif/game-builder", "game-builder"]
+```
+
+**Cursor** (`.cursor/mcp.json`), **Windsurf**, **Claude Desktop** and most other clients use the same JSON shape:
+```json
+{
+  "mcpServers": {
+    "game-builder": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/wuisabel-gif/game-builder", "game-builder"]
+    }
+  }
+}
+```
+
+**Gemini CLI** (`~/.gemini/settings.json`): the same `mcpServers` block.
 
 ## Use
 
-```
-game-builder                      # chat in the current folder
-game-builder -C my-game "idea"    # start in my-game/ with a first request
-game-builder -y "..."             # run shell commands without asking each time
-```
+Ask your agent, for example:
 
-Inside the chat:
-- Type what you want, then keep refining: "make the jump floatier", "add a second level".
-- `/serve` serves the game folder (or its `dist/`) at http://127.0.0.1:8000 and opens your browser.
-- `/quit` exits. Ctrl-C stops the current step without losing the conversation.
+- "Use game-builder to make an anime dress-up game with punk and romantic outfits."
+- "Make a Three.js Backrooms walking sim with flickering lights."
+- "Build an online werewolf game for 6–12 players with AI seats, in English and Chinese."
+- "Set up a Unity third-person viking game where draugr ambush you in fog."
+- "Write the image prompt for a 4-frame walk cycle, 256 × 256 per frame."
 
-The agent can read and write files only inside the project folder. It asks before every shell command unless you pass `-y`. It cannot see your screen, so it will ask you what the game looks like and fix what you report.
-
-Set `GAME_BUILDER_MODEL` to use a different Claude model (default `claude-opus-5-5`).
-
-### Ideas to try
-
-```
-game-builder -C closet "an anime dress-up game with punk and romantic outfits and makeup"
-game-builder -C level0 "a Three.js Backrooms walking sim with flickering lights"
-game-builder -C campus "an A-Frame campus you explore to collect study tips"
-game-builder -C mistwalker "a Unity third-person viking game where draugr ambush you in fog"
-game-builder -C nightfall "online werewolf for 6-12 players with AI seats, English and Chinese"
-game-builder -C critters "a Rust terminal game where little creatures build a culture"
-```
+The agent plans, scaffolds, builds, checks and serves the game, and asks you what you see in the browser.
 
 ## Develop
 

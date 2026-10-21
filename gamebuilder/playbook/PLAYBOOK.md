@@ -44,7 +44,7 @@ Prefer layered sprites (body, outfit, hair, face, accessories) over baking every
 - Web games expose `window.render_game_to_text()` (state as JSON) and `window.advanceTime(ms)` so logic can be checked without a screen.
 - Keep rules in pure functions and add a small runnable check (a `node tests/game.mjs`, `cargo test`, or Python asserts) for scoring, win/lose and any rule with branches.
 - Syntax-check what you wrote (`node --check file.js`, `python3 -m py_compile`, `cargo check`, `dotnet build` where available).
-- You cannot see the screen. After each milestone, tell the user exactly how to run it (`/serve` in this tool serves the project) and what to look at, and ask them to report what they see.
+- Run `check_game` after each change. If you cannot see the screen, call `serve_game` after each milestone, tell the user what to look at, and ask them to report what they see.
 - Read console errors and logs the user pastes back, and fix the root cause.
 
 ## 5. Ship

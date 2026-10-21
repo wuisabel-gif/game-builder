@@ -1,29 +1,51 @@
 """Run: uv run --with . python tests/test_tools.py"""
+import asyncio
+import sys
 import tempfile
 from pathlib import Path
 
-from gamebuilder.cli import add_user, run_tool, system_prompt
+from mcp import Client, StdioServerParameters
 
-root = Path(tempfile.mkdtemp()).resolve()
-yes = lambda c: True
+from gamebuilder.server import check_game, get_guide, image_prompt, plan_game, scaffold_game
 
-assert run_tool(root, "write_file", {"path": "dist/index.html", "content": "<h1>hi</h1>"}, yes) == ("Wrote dist/index.html (1 lines).", False)
-assert run_tool(root, "read_file", {"path": "dist/index.html"}, yes) == ("<h1>hi</h1>", False)
-assert run_tool(root, "write_file", {"path": "../escape.txt", "content": "x"}, yes)[1] is True
-assert run_tool(root, "read_file", {"path": "/etc/hosts"}, yes)[1] is True
-assert not (root.parent / "escape.txt").exists()
-assert run_tool(root, "edit_file", {"path": "dist/index.html", "old": "zzz", "new": "y"}, yes)[1] is True
-assert run_tool(root, "edit_file", {"path": "dist/index.html", "old": "hi", "new": "hello"}, yes)[1] is False
-assert "hello" in (root / "dist/index.html").read_text()
-assert "dist/index.html" in run_tool(root, "list_files", {"path": "."}, yes)[0]
-assert run_tool(root, "write_file", {"path": "a.txt"}, yes)[1] is True  # missing content
-assert run_tool(root, "run_command", {"command": "echo ok"}, yes) == ("exit code 0\nok\n", False)
-assert run_tool(root, "run_command", {"command": "echo ok"}, lambda c: False)[0].startswith("The user declined")
+tmp = Path(tempfile.mkdtemp()).resolve()
 
-msgs = []
-add_user(msgs, "make a game")
-add_user(msgs, [{"type": "tool_result", "tool_use_id": "t", "content": "x"}])
-assert len(msgs) == 1 and len(msgs[0]["content"]) == 2
+# Planning picks a stack from the idea and pulls matching guides.
+assert "Recommended stack: online multiplayer" in plan_game("a werewolf game friends join from their phones")
+assert "Recommended stack: three.js first person" in plan_game("a backrooms horror walk")
+assert "Recommended stack: 2d web" in plan_game("an anime dress-up game")
+assert "Dress-up" in plan_game("an anime dress-up game")
+assert "Recommended stack: unity" in plan_game("anything", stack="unity")
+assert "GameCI" in get_guide("unity") and "## Murder mystery" in get_guide("murder mystery")
+assert "No match" in get_guide("zzzz")
 
-assert "Stacks guide" in system_prompt(root) and "Genre playbooks" in system_prompt(root)
-print("all tool checks passed")
+# Scaffolding writes playable starters and never overwrites.
+for stack in ("web2d", "threejs", "aframe"):
+    out = scaffold_game(str(tmp / stack), stack, "Test Game")
+    assert out.startswith("Created"), out
+    assert "No missing local files." in check_game(str(tmp / stack)), check_game(str(tmp / stack))
+assert "not empty" in scaffold_game(str(tmp / "web2d"), "web2d", "Again")
+assert "absolute" in scaffold_game("relative/path", "web2d", "X")
+assert "no files were written" in scaffold_game(str(tmp / "u"), "unity", "X")
+assert "__TITLE__" not in (tmp / "web2d/dist/index.html").read_text()
+
+# Checks find broken references.
+(tmp / "web2d/dist/app.js").write_text((tmp / "web2d/dist/app.js").read_text() + "\nnew Image().src = 'assets/missing.png';\n")
+assert "assets/missing.png" in check_game(str(tmp / "web2d"))
+
+prompt = image_prompt("two characters", columns=4, cell_width=543, cell_height=724, cells=["a", "b", "c", "d"], change="the face")
+assert "Canvas 2172 × 724 px" in prompt and "Change only this: the face" in prompt
+
+
+# End to end over stdio, the way an agent connects.
+async def over_stdio():
+    async with Client(StdioServerParameters(command=sys.executable, args=["-m", "gamebuilder.server"])) as client:
+        names = {t.name for t in (await client.list_tools()).tools}
+        assert names == {"plan_game", "get_guide", "scaffold_game", "image_prompt", "check_game", "serve_game"}, names
+        result = await client.call_tool("get_guide", {"topic": "werewolf"})
+        assert "Social deduction" in result.content[0].text
+        assert len((await client.list_resources()).resources) == 3
+        assert [p.name for p in (await client.list_prompts()).prompts] == ["new_game"]
+
+asyncio.run(over_stdio())
+print("all checks passed")

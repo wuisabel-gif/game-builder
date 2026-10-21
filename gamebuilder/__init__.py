@@ -1,3 +1,3 @@
-"""Game Builder: a terminal agent that designs, builds and tests games."""
+"""Game Builder: an MCP server that helps any coding agent build games."""
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
