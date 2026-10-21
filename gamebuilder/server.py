@@ -45,15 +45,26 @@ def sections() -> dict[str, str]:
     return out
 
 
-# Words in an idea that point at a stack, checked in order; the first match wins.
-STACK_HINTS = [
-    ("online multiplayer", ("werewolf", "mafia", "murder mystery", "online", "friends", "rooms", "party game", "betrayal", "social deduction", "multiplayer")),
-    ("unity", ("unity", "third-person", "third person", "souls", "physics", "console")),
-    ("three.js first person", ("first-person", "first person", "backrooms", "horror", "walk", "maze", "3d", "museum", "liminal")),
-    ("a-frame third-person world", ("campus", "town", "explore", "vr", "roblox", "world")),
-    ("terminal game", ("terminal", "tui", "rust", "roguelike", "ascii")),
-    ("npc ai", ("npc", "guard", "enemy ai", "behavior")),
+# Engines named outright win; then multiplayer and story words; then 3D words choose
+# Godot, or 3D web when the idea says it runs in a browser; everything else is 2D web.
+NAMED = [
+    ("unity", ("unity",)), ("unreal", ("unreal",)), ("godot", ("godot",)), ("bevy", ("bevy",)),
+    ("monogame", ("monogame", "fna", "xna")), ("libgdx", ("libgdx",)), ("raylib", ("raylib",)),
+    ("löve", ("love2d", "löve")), ("defold", ("defold",)), ("pygame", ("pygame", "pyxel", "python")),
+    ("flutter flame", ("flutter", "flame")), ("visual novels", ("ren'py", "renpy", "monogatari")),
+    ("3d web", ("three.js", "threejs", "babylon", "babylon.js", "playcanvas", "a-frame", "aframe", "webxr")),
+    ("2d web", ("phaser", "pixijs", "kaplay", "canvas")),
 ]
+STACK_HINTS = [
+    ("online multiplayer", ("multiplayer", "online", "mmo", "werewolf", "mafia", "murder mystery", "social deduction", "party game", "co-op", "pvp")),
+    ("visual novels", ("visual novel", "dating sim", "branching story", "interactive fiction")),
+]
+THREE_D = ("3d", "first-person", "first person", "fps", "third-person", "third person", "shooter", "racing", "open world", "vr", "horror", "souls")
+BROWSER = ("browser", "web", "itch", "link")
+
+
+def has(text: str, words) -> bool:
+    return any(re.search(rf"(?<![\w-]){re.escape(w)}(?![\w-])", text) for w in words)
 
 
 GENERIC = {"game", "games", "action", "online", "mobile", "builder", "creator", "simulation", "first", "person"}
@@ -61,9 +72,11 @@ GENERIC = {"game", "games", "action", "online", "mobile", "builder", "creator", 
 
 def pick_stack(idea: str) -> str:
     text = idea.lower()
-    for stack, words in STACK_HINTS:
-        if any(re.search(rf"\b{re.escape(w)}\b", text) for w in words):
+    for stack, words in NAMED + STACK_HINTS:
+        if has(text, words):
             return stack
+    if has(text, THREE_D):
+        return "3d web" if has(text, BROWSER) else "godot"
     return "2d web"
 
 
@@ -112,7 +125,8 @@ def get_guide(topic: str) -> str:
 @mcp.tool()
 def scaffold_game(folder: str, stack: str, title: str) -> str:
     """Create a playable starter in an empty or new folder. `stack` is one of: web2d, threejs,
-    aframe (files are written), or unity, multiplayer, rust-tui, npc-fsm (setup steps are returned).
+    aframe (files are written), or godot, unity, unreal, bevy, monogame, libgdx, raylib, love, pygame,
+    flame, renpy, multiplayer (setup steps are returned).
     Use an absolute folder path."""
     stack = stack.lower().strip()
     if stack in SETUP_STEPS:
@@ -242,7 +256,7 @@ def playbook_resource() -> str:
     return guide("PLAYBOOK.md")
 
 
-@mcp.resource("gamebuilder://stacks", mime_type="text/markdown", description="Stacks: 2D web, Three.js, A-Frame, Unity, online multiplayer, Rust terminal, NPC AI")
+@mcp.resource("gamebuilder://stacks", mime_type="text/markdown", description="Stacks: 2D and 3D web, Godot, Unity, Unreal, Bevy, MonoGame, libGDX, raylib, LÖVE, Defold, Pygame, Flame, Ren'Py, multiplayer backends")
 def stacks_resource() -> str:
     return guide("stacks.md")
 

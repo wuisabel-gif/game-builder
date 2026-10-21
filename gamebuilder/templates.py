@@ -203,13 +203,20 @@ STARTERS = {
 
 # Stacks with a toolchain of their own: the agent sets these up by following the steps.
 SETUP_STEPS = {
-    "unity": "Create the project in Unity Hub (Unity 6, Built-In or URP). Add Input System and Cinemachine from the Package Manager. "
-             "Then write scripts into Assets/Scripts following the Unity section of the stacks guide, add a .gitignore for Library/ Temp/ Logs/ UserSettings/, "
-             "enable Git LFS for models, and add a GameCI workflow for a WebGL build deployed to GitHub Pages.",
-    "multiplayer": "Run `npx create-next-app@latest <folder> --ts --app`, add drizzle-orm, drizzle-kit and wrangler, define rooms/players/events tables, "
-                   "and put every rule in pure functions under lib/ with tests in tests/game.mjs. Follow the online multiplayer section of the stacks guide.",
-    "rust-tui": "Run `cargo new <folder>`, then `cargo add ratatui crossterm rand`. Keep the simulation in its own module with a fixed tick and a --seed flag, "
-                "and draw with ratatui. Follow the terminal game section of the stacks guide.",
-    "npc-fsm": "Create the FSM module (PATROL, CHASE, ATTACK, SEARCH, RETURN) behind a small world adapter, plus a mock world and a terminal demo. "
-               "Follow the NPC AI section of the stacks guide.",
+    "godot": "Install Godot 4.x and create the project in the editor (or write project.godot by hand). Put scenes in scenes/, scripts in scripts/, "
+             "data as .tres resources. Add an export preset for Web and a GitHub Action that exports headlessly. Follow the Godot section of the stacks guide.",
+    "unity": "Create the project in Unity Hub. Add Input System and Cinemachine from the Package Manager, write scripts into Assets/Scripts, "
+             "add a .gitignore for Library/ Temp/ Logs/ UserSettings/, enable Git LFS for models, and add a GameCI workflow (WebGL build to GitHub Pages).",
+    "unreal": "Create the project from the Epic launcher (C++ template). Put gameplay classes in Source/, use Blueprints for tuning, and set up Git LFS. "
+              "Follow the Unreal section of the stacks guide.",
+    "bevy": "Run `cargo new <folder>` and `cargo add bevy`. Organize features as plugins with systems over components; pin the Bevy version.",
+    "monogame": "Install the MonoGame templates (`dotnet new install MonoGame.Templates.CSharp`) and run `dotnet new mgdesktopgl -o <folder>`.",
+    "libgdx": "Generate the project with gdx-liftoff, choosing desktop, Android and web backends as needed.",
+    "raylib": "Create main.c with the init/update/draw loop and link raylib (or use a binding for your language).",
+    "love": "Create main.lua with love.load, love.update(dt) and love.draw; run with `love .`.",
+    "pygame": "Create a virtual environment, `pip install pygame` (or `pip install pyxel` for retro games), and write main.py with the game loop.",
+    "flame": "Run `flutter create <folder>` and `flutter pub add flame`, then build a FlameGame with components.",
+    "renpy": "Install Ren'Py, create the project from the launcher, and write the story in game/script.rpy.",
+    "multiplayer": "Pick the backend from the online multiplayer section of the stacks guide (Colyseus, Nakama, Socket.IO or boardgame.io). "
+                   "Keep every rule in pure functions with tests, make the server authoritative, and send private information only to its owner.",
 }
