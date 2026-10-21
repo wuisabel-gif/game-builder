@@ -15,8 +15,10 @@ assert "Recommended stack: online multiplayer" in plan_game("a werewolf game fri
 assert "Recommended stack: three.js first person" in plan_game("a backrooms horror walk")
 assert "Recommended stack: 2d web" in plan_game("an anime dress-up game")
 assert "Dress-up" in plan_game("an anime dress-up game")
+assert "## Card game" not in plan_game("a racing game")  # generic words do not match genres
+assert "## Racing" in plan_game("a racing game")
 assert "Recommended stack: unity" in plan_game("anything", stack="unity")
-assert "GameCI" in get_guide("unity") and "## Murder mystery" in get_guide("murder mystery")
+assert "GameCI" in get_guide("unity") and "## Party and social deduction" in get_guide("murder mystery")
 assert "No match" in get_guide("zzzz")
 
 # Scaffolding writes playable starters and never overwrites.
@@ -43,7 +45,7 @@ async def over_stdio():
         names = {t.name for t in (await client.list_tools()).tools}
         assert names == {"plan_game", "get_guide", "scaffold_game", "image_prompt", "check_game", "serve_game"}, names
         result = await client.call_tool("get_guide", {"topic": "werewolf"})
-        assert "Social deduction" in result.content[0].text
+        assert "social deduction" in result.content[0].text
         assert len((await client.list_resources()).resources) == 3
         assert [p.name for p in (await client.list_prompts()).prompts] == ["new_game"]
 
