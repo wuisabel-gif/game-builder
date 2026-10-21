@@ -51,3 +51,33 @@ usually sink it. Build the loop first, then add systems in the order listed.
 - **Local**: shared keyboard or split touch zones; turn-based hot-seat is the simplest.
 - **Online**: needs a server; prefer turn-based over real-time. Keep game rules in one pure function `step(state, action)` that both client and server run. Ask the user before adding any backend, accounts or paid service.
 - **Pitfalls**: trusting the client for scores; no reconnect handling.
+
+## Social deduction (werewolf / mafia)
+- **Loop**: secret role → night action → day discussion → vote someone out → reveal and suspicion shifts.
+- **Systems**: role table (Wolves, Seer, Witch, Hunter, Guard, Villagers) with setups by player count; timed night phases; private wolf chat; turn-based speaking; vote resolution; win checks after every death; a draw after N cycles; rule-based AI seats that can lie.
+- **Pitfalls**: leaking private info through the API; ambiguous interaction rules (write them down, e.g. guard + antidote cancel, poison ignores protection); phases that drag (offer a fast mode for AI seats).
+
+## Murder mystery (剧本杀 / script game)
+- **Loop**: read your private script → search for clues → share or hide them → private talks → accuse with evidence.
+- **Systems**: fixed seats with private scripts (background, secret, timeline, personal goal); search locations with per-round clues; public case file; one-to-one whispers; secret accusation with suspect, key evidence and reasoning; a full reveal of the truth.
+- **Pitfalls**: a solution that cannot be deduced from the clues; timers that auto-skip humans (let players confirm before advancing); spoilers on replay (same culprit, warn players).
+
+## Negotiation and betrayal (prisoner's dilemma family)
+- **Loop**: negotiate in chat → lock in a secret move → simultaneous reveal → scores change → trust updates.
+- **Systems**: many small mode cards sharing one engine (move set and payoff table per mode); 3/5/7 rounds; whispers; recap with awards.
+- **Pitfalls**: a dominant strategy that makes talking pointless; unclear payoff tables (always show them).
+
+## Horror exploration / walking sim
+- **Loop**: explore → sense something is wrong → find the next clue or exit → tension spike → relief.
+- **Systems**: first-person movement; light and sound as the main tools (flicker, blackouts, drones); NPCs or entities that react to the player's attention; collectible lore cards or a quiz.
+- **Pitfalls**: darkness that hides everything (keep a readable path); jump scares without build-up; motion sickness (offer sensitivity and FOV settings).
+
+## Third-person action / survival
+- **Loop**: move through the world → enemies ambush → fight with timing and positioning → heal on kills → push further.
+- **Systems**: character controller and follow camera; melee arc hit detection with cooldowns; enemy archetypes (slow tank, fast runner, animal); spawn waves scaled by score; endless terrain recycling; health and score HUD; a friendly guide NPC for lore.
+- **Pitfalls**: unreadable attacks (telegraph wind-ups); enemies stuck on obstacles; difficulty that only ever goes up (add recovery moments).
+
+## Life sim / creature society
+- **Loop**: care for creatures → watch them act on their own → intervene (food, eggs, ideas) → see the society change.
+- **Systems**: needs (hunger, energy, social) on a tick; simple agents that wander, eat, sleep and meet; ideas or traits that spread and mutate on contact; scarcity pressure; an inspector panel with memories and stats.
+- **Pitfalls**: nothing changes without input (seed small random events); runaway population (tie growth to food).

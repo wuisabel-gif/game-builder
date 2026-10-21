@@ -1,9 +1,0 @@
-{
-  "name": "game-builder",
-  "version": "0.1.0",
-  "description": "A Claude Code helper for building small browser games of any genre: pitch, build, ChatGPT art prompts, testing and GitHub Pages deploy.",
-  "author": { "name": "Isabel Wu" },
-  "repository": "https://github.com/wuisabel-gif/game-builder",
-  "license": "MIT",
-  "keywords": ["games", "game-dev", "browser-games", "sprites", "github-pages"]
-}

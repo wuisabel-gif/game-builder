@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "game-builder"
+version = "0.2.0"
+description = "A terminal agent that builds games with you: 2D web, Three.js, A-Frame, Unity, online multiplayer, Rust terminal games and more."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Isabel Wu" }]
+dependencies = ["anthropic"]
+
+[project.scripts]
+game-builder = "gamebuilder.cli:main"
+
+[project.urls]
+Repository = "https://github.com/wuisabel-gif/game-builder"
+
+[tool.hatch.build.targets.wheel]
+packages = ["gamebuilder"]

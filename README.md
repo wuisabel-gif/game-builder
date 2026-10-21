@@ -1,37 +1,78 @@
 # Game Builder
 
-A Claude Code helper for making small, finished browser games — dress-up, visual novel, platformer, puzzle, cozy sim, rhythm, card, idle and local multiplayer. It turns "can we make a game where…" into a playable static site, writes layout-exact ChatGPT image prompts for sprite sheets, tests the game like a player, and ships it to GitHub Pages.
+A terminal agent that builds games with you. Describe a game, and it pitches a plan, writes the code into your folder, runs checks, writes image prompts for the art, and tells you how to play it. It is a standalone command-line app, not a plugin for another coding tool.
 
-Built from what we learned making [AFTER SCHOOL](https://github.com/wuisabel-gif/after-school), an anime styling game ([play it](https://wuisabel-gif.github.io/after-school/)).
+```
+$ game-builder -C werewolf "a 6-player werewolf game friends can join from their phones"
+```
+
+It knows the stacks behind real games: an anime styling game, a Backrooms crawler, a haunted hotel, a Roblox-style campus, a Unity survival-horror game, online werewolf and murder-mystery games, and a Rust terminal life sim.
+
+| Stack | Good for |
+|---|---|
+| 2D web (canvas + HTML) | dress-up, visual novel, puzzle, card, idle, 2D arcade |
+| Three.js, single HTML file | first-person exploration and horror |
+| A-Frame, single HTML file | third-person explorable worlds, VR |
+| Unity (C#) + GameCI WebGL deploy | third-person action, physics games |
+| Next.js + Cloudflare D1 | online multiplayer: werewolf, murder mystery, betrayal games |
+| Rust + ratatui | terminal life sims and roguelikes |
+| Finite-state-machine NPC AI | guards, enemies and squads in any engine |
+
+Its genre guide covers 15 genres, from dress-up and platformers to social deduction, murder mystery and creature life sims. The playbook, stacks guide and genre guide live in [`gamebuilder/playbook/`](gamebuilder/playbook/).
 
 ## Install
 
-In Claude Code:
+Needs Python 3.10+.
 
 ```
-/plugin marketplace add wuisabel-gif/game-builder
-/plugin install game-builder@game-builder
+uv tool install git+https://github.com/wuisabel-gif/game-builder
 ```
 
-Or copy `skills/game-builder` into `~/.claude/skills/`.
+or `pipx install git+https://github.com/wuisabel-gif/game-builder`.
+
+## Sign in
+
+It uses Claude through the Anthropic API. Either set an API key:
+
+```
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+or sign in once with the Anthropic CLI: `ant auth login`.
 
 ## Use
 
 ```
-/game-builder a cozy café game where you style the barista for each customer
+game-builder                      # chat in the current folder
+game-builder -C my-game "idea"    # start in my-game/ with a first request
+game-builder -y "..."             # run shell commands without asking each time
 ```
 
-Or just describe a game; Claude picks the skill up on its own.
+Inside the chat:
+- Type what you want, then keep refining: "make the jump floatier", "add a second level".
+- `/serve` serves the game folder (or its `dist/`) at http://127.0.0.1:8000 and opens your browser.
+- `/quit` exits. Ctrl-C stops the current step without losing the conversation.
 
-## What it does
+The agent can read and write files only inside the project folder. It asks before every shell command unless you pass `-y`. It cannot see your screen, so it will ask you what the game looks like and fix what you report.
 
-1. **Pitch** — genre, core loop, v1 features and what waits for later.
-2. **Build** — a no-build static site (`index.html`, `style.css`, `app.js`, `art.js`): playable loop first, then juice, progression, saving and UI polish.
-3. **Art** — ChatGPT prompts with exact canvas size, grid, anchors and style, so generated sprites line up; then wires the PNGs in.
-4. **Test** — `render_game_to_text()` / `advanceTime()` hooks, desktop, tablet and phone checks, close-up art inspection.
-5. **Ship** — README, GitHub Pages workflow and a progress log.
+Set `GAME_BUILDER_MODEL` to use a different Claude model (default `claude-opus-5-5`).
 
-Genre playbooks (loop, systems, data shape, pitfalls) live in [`skills/game-builder/references/genres.md`](skills/game-builder/references/genres.md).
+### Ideas to try
+
+```
+game-builder -C closet "an anime dress-up game with punk and romantic outfits and makeup"
+game-builder -C level0 "a Three.js Backrooms walking sim with flickering lights"
+game-builder -C campus "an A-Frame campus you explore to collect study tips"
+game-builder -C mistwalker "a Unity third-person viking game where draugr ambush you in fog"
+game-builder -C nightfall "online werewolf for 6-12 players with AI seats, English and Chinese"
+game-builder -C critters "a Rust terminal game where little creatures build a culture"
+```
+
+## Develop
+
+```
+uv run --with . python tests/test_tools.py
+```
 
 ## License
 
