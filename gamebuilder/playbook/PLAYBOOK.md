@@ -7,9 +7,9 @@ the game (see the stacks guide), start from a playable loop, then polish.
 
 Pin down, defaulting anything the user does not say:
 - **Genre and core loop**: what the player does every 10 seconds, and why they do it again. The genre guide lists the loop, systems and pitfalls of each genre.
-- **Stack**: 2D web, Three.js first person, A-Frame world, Unity, online multiplayer, terminal, or NPC AI library. Default to the lightest stack that can deliver the game.
-- **Fantasy and tone**: setting, characters, references ("like NANA", "like the Backrooms").
-- **Session length and win/lose**: a 2-minute arcade run or a 45-minute mystery.
+- **Stack**: 2D or 3D web, Godot, Unity, Unreal, Bevy, another engine from the stacks guide, plus a multiplayer backend if needed. Default to the lightest stack that can deliver the game.
+- **Fantasy and tone**: setting, characters, references ("like Stardew Valley", "like Hades", "like Vampire Survivors").
+- **Session length and win/lose**: a 2-minute arcade run, a 30-minute roguelike run or a 40-hour RPG.
 - **Platform**: desktop and phone by default; touch controls for real-time input.
 - **Art plan**: generated images (prompts below), procedural shapes and textures, free models, or placeholders first.
 
