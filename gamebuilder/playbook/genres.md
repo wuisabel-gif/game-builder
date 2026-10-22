@@ -1,83 +1,148 @@
 # Genre playbooks
 
-Each entry: the core loop, the systems v1 needs, the data shape, and the pitfalls that
-usually sink it. Build the loop first, then add systems in the order listed.
+The genres that make up most of the PC, console and mobile market. Each entry gives the core
+loop, the systems a first version needs, common pitfalls, engines that suit it, and open-source
+games on GitHub worth reading for reference. Build the loop first, then add systems in order.
 
-## Dress-up / styling
-- **Loop**: pick an item → see the character change instantly → compare against a goal → save or share.
-- **Systems**: layered sprite renderer (body, outfit, hair, face, makeup, accessories); wardrobe grid with thumbnails rendered from the same renderer; undo/redo; briefs scored by simple checks (`[label, state => bool]`); saved looks album; PNG export; share link (`#` + base64 state).
-- **Data**: `{outfit, hair, hairColor, lip, blush, liner, accessory, pose, expression}` as integers.
-- **Pitfalls**: atlas cells that bleed into neighbours; a replaced head that does not match body proportions; moving the head separately from the body leaves a seam (animate the whole figure with CSS instead); the UI covering the face.
-- **Extras**: story chapters that each map to a brief; a second character who stands behind and can be swapped in; idle breathing and blinking.
+## Action / platformer / metroidvania
+- **Loop**: move → jump, dodge or attack → reach the next screen or checkpoint → die → retry in under two seconds.
+- **Systems**: fixed-timestep physics separate from rendering; input buffering and coyote time; tile-based levels; checkpoints; camera follow with look-ahead; hit-stop and screen shake; for metroidvanias, ability gates and a map.
+- **Pitfalls**: frame-rate-dependent movement; floaty jumps (stronger gravity on the way down); unreadable hazards; no touch controls on mobile.
+- **Engines**: Godot, Phaser, Unity, MonoGame, LÖVE.
+- **Read on GitHub**: SuperTux/supertux, flareteam/flare-game.
 
-## Visual novel / story
-- **Loop**: read a line → make a choice → see the consequence → want the next scene.
-- **Systems**: script as an array of nodes `{id, speaker, text, choices:[{text, goto, set}]}`; flags object; portrait layer with expressions; backlog; auto/skip; save slots; chapter select after completion.
-- **Pitfalls**: walls of text (cap ~200 characters per box); choices that do not matter; no way to re-read.
-- **Extras**: affinity meters, multiple endings, a gallery of unlocked CGs.
+## Roguelike / roguelite
+- **Loop**: enter a procedurally generated run → fight and collect → die → keep some progress → start a new run.
+- **Systems**: seeded RNG; level generation (rooms and corridors, cellular automata, wave function collapse); turn or real-time combat; item and modifier pools; meta-progression between runs.
+- **Pitfalls**: runs that feel the same (vary rooms, enemies and items); unfair deaths from hidden information; balance that only scales numbers.
+- **Engines**: Godot, Unity, Bevy, raylib, a terminal (curses or ratatui) for classic roguelikes.
+- **Read on GitHub**: 00-Evan/shattered-pixel-dungeon, tmewett/BrogueCE, crawl/crawl, CleverRaven/Cataclysm-DDA, mxgmn/WaveFunctionCollapse.
 
-## Platformer / arcade / action
-- **Loop**: move → dodge or attack → score → die → retry in under two seconds.
-- **Systems**: fixed-timestep update (e.g. 60 Hz accumulator) separate from render; input map for keyboard, touch buttons and gamepad; AABB collisions; camera follow; particles; hit-stop and screen shake; high score in storage.
-- **Data**: levels as tile strings or arrays; entities as `{x, y, vx, vy, w, h, type}`.
-- **Pitfalls**: frame-rate-dependent physics; floaty jumps (use higher gravity on the way down, coyote time and jump buffering); unreadable hazards; no touch controls on phones.
+## RPG (action, turn-based, JRPG, CRPG)
+- **Loop**: explore → fight → gain experience and loot → get stronger → unlock the next area or story beat.
+- **Systems**: stats and level curve; combat (turn queue or real time); inventory and equipment; quests and dialogue trees; save slots; data-driven items, enemies and abilities.
+- **Pitfalls**: content scope (plan one region first); stat bloat; grind instead of choices; save bugs.
+- **Engines**: Godot, Unity, Unreal (3D action RPGs), RPG Maker-style 2D in Phaser.
+- **Read on GitHub**: GDQuest/godot-open-rpg, OpenMW/openmw, ihhub/fheroes2.
 
-## Puzzle (match-3, sliding, logic)
+## Shooter (FPS, TPS, top-down, arena)
+- **Loop**: move → aim → shoot → take cover → win the encounter or round.
+- **Systems**: character controller; hitscan and projectile weapons; recoil and spread; enemy AI with cover and flanking; health, armor and pickups; for online play, authoritative server with lag compensation.
+- **Pitfalls**: weak feedback (add hit markers, sound and impact effects); spongy enemies; netcode bolted on late.
+- **Engines**: Unreal, Unity, Godot; Three.js or Babylon.js for browser shooters.
+- **Read on GitHub**: id-Software/Quake-III-Arena, id-Software/DOOM, assaultcube/AC, Unvanquished/Unvanquished, TeamHypersomnia/Hypersomnia.
+
+## Survival / crafting / sandbox
+- **Loop**: gather → craft tools → build shelter → survive threats (hunger, night, enemies) → expand.
+- **Systems**: needs meters; resource nodes; crafting recipes as data; building on a grid or voxels; day/night cycle; world saving; often co-op multiplayer.
+- **Pitfalls**: an empty midgame (give goals beyond survival); inventory tedium; world size that outgrows performance.
+- **Engines**: Unity, Godot, Unreal; voxel engines for block worlds.
+- **Read on GitHub**: luanti-org/luanti, veloren/veloren, OpenStarbound/OpenStarbound.
+
+## Strategy (RTS, 4X, turn-based tactics, grand strategy)
+- **Loop**: gather resources → build → expand → fight or out-plan rivals → win by conquest, score or victory condition.
+- **Systems**: map and fog of war; unit selection and orders; pathfinding (A*, flow fields); economy; tech tree; AI opponents; deterministic lockstep simulation for multiplayer.
+- **Pitfalls**: an AI that cannot play the game; information overload; late-game slowdown.
+- **Engines**: Unity, Godot, custom C++/C#; Phaser or PixiJS for browser tactics.
+- **Read on GitHub**: OpenRA/OpenRA, wesnoth/wesnoth, freeciv/freeciv, yairm210/Unciv, OpenXcom/OpenXcom.
+
+## Tower defense
+- **Loop**: enemies walk a path → place and upgrade towers → survive the wave → earn more → harder wave.
+- **Systems**: path or flow field; wave table; tower targeting rules (first, strongest, closest); upgrade trees; speed controls.
+- **Pitfalls**: one dominant tower; waves that only add health; no information about upcoming enemies.
+- **Engines**: Phaser, Godot, Unity.
+- **Read on GitHub**: Anuken/Mindustry (tower defense crossed with factory building).
+
+## Simulation and management (city builder, tycoon, colony, farming)
+- **Loop**: plan and build → time passes → systems produce money or resources → unlock new buildings → grow.
+- **Systems**: tick-based simulation with pause and speed; grid placement; supply and demand chains; agents with needs; budgets; overlays that show what is going wrong.
+- **Pitfalls**: hidden causes of failure (show the numbers); inflation that breaks the economy; performance with many agents (data-oriented design helps).
+- **Engines**: Unity, Godot, Bevy (ECS suits large simulations), PixiJS for 2D browser sims.
+- **Read on GitHub**: OpenTTD/OpenTTD, OpenRCT2/OpenRCT2, bvschaik/julius, CorsixTH/CorsixTH, OpenLoco/OpenLoco.
+
+## Racing
+- **Loop**: race → overtake → hit the racing line → finish → unlock cars or tracks.
+- **Systems**: vehicle physics (arcade or simulation); track splines and checkpoints; AI drivers following the racing line with rubber-banding; lap timing and ghosts; drift or boost mechanics.
+- **Pitfalls**: physics that feel slippery or stiff; AI that is either perfect or useless; poor sense of speed (field of view, motion blur, camera shake).
+- **Engines**: Unity, Unreal, Godot; Three.js for browser racers.
+- **Read on GitHub**: supertuxkart/stk-code.
+
+## Fighting
+- **Loop**: read the opponent → space and attack → land a combo → win the round.
+- **Systems**: frame data (startup, active, recovery); hitboxes and hurtboxes per frame; input buffer and motion inputs; combo and cancel rules; rollback netcode for online play.
+- **Pitfalls**: inconsistent frame timing; netcode added late (design for rollback early); a cast too large for v1.
+- **Engines**: Godot, Unity, custom; MUGEN-style engines.
+- **Read on GitHub**: ikemen-engine/Ikemen-GO.
+
+## Sports
+- **Loop**: control a player or team → pass, shoot or score → win the match → progress a season.
+- **Systems**: ball physics; team AI with positions and roles; rules and referee logic; stamina; season or league mode.
+- **Pitfalls**: AI clumping around the ball; controls that hide what the player can do; licensing (use original teams and names).
+- **Engines**: Unity, Unreal, Godot.
+
+## Puzzle (match-3, logic, physics puzzle, 2048-style)
 - **Loop**: read the board → plan a move → satisfying resolution → slightly harder board.
-- **Systems**: pure board logic separate from animation (testable with asserts); move validation; cascade/resolve loop; undo; level list with star thresholds; hint after idle time.
-- **Pitfalls**: unsolvable generated boards (generate by playing backwards or validate with a solver); animations that block input too long.
+- **Systems**: board logic as pure functions (easy to test); move validation; cascades; undo; level list with star goals; hints after idle time.
+- **Pitfalls**: unsolvable generated boards (generate backwards or verify with a solver); animations that block input.
+- **Engines**: Phaser, PixiJS, Godot, Unity; plain canvas for small puzzles.
+- **Read on GitHub**: gabrielecirulli/2048, hextris/hextris.
 
-## Cozy sim / management (café, farm, shop, room decor)
-- **Loop**: spend resources → time passes → earn more → unlock something new to place or sell.
-- **Systems**: day/tick clock with pause; inventory and prices in one table; customers or crops as timers; placeable grid for decor; unlock tree; offline progress capped to a few hours.
-- **Pitfalls**: numbers that inflate too fast; nothing new to see after ten minutes (stagger unlocks); hidden timers (always show progress bars).
+## Casual and hyper-casual mobile
+- **Loop**: one tap or swipe mechanic → short session (30-90 s) → score → instant retry.
+- **Systems**: one-thumb controls; difficulty ramp; daily rewards; ads or in-app purchases only if the user asks; analytics hooks.
+- **Pitfalls**: slow startup; small touch targets; the first ten seconds not showing the fun.
+- **Engines**: Unity, Godot, Defold, Cocos, Flutter Flame, Phaser for web.
+
+## Card game / deck builder
+- **Loop**: draw → play cards with a limited resource → resolve effects → adjust the deck after the fight.
+- **Systems**: deck, hand and discard piles; card effects as small functions keyed by id; enemy intent shown in advance; seeded RNG; for collectible card games, a rules engine and deck validation.
+- **Pitfalls**: too many keywords at once; vague card text (show exact numbers); effect ordering bugs (resolve on a stack).
+- **Engines**: Godot, Unity, Phaser; boardgame.io for turn-based online card games.
+- **Read on GitHub**: Card-Forge/forge, boardgameio/boardgame.io.
+
+## Visual novel / narrative / dating sim
+- **Loop**: read → choose → see consequences → reach one of several endings.
+- **Systems**: script as data (nodes with speaker, text and choices); flags and affinity; character sprites with expressions; backlog, skip and auto; save slots; gallery of unlocked art.
+- **Pitfalls**: walls of text (keep each box short); choices that do not matter; no way to re-read.
+- **Engines**: Ren'Py, Monogatari (web), Godot with a dialogue plugin, Unity with Ink or Yarn Spinner.
+- **Read on GitHub**: renpy/renpy, Monogatari/Monogatari.
+
+## Dress-up / fashion / avatar creator
+- **Loop**: pick an item → see the character change instantly → match a goal or theme → save or share the look.
+- **Systems**: layered sprite renderer (body, outfit, hair, face, makeup, accessories); wardrobe thumbnails drawn by the same renderer; undo; themed challenges scored by simple checks; album and image export; share links.
+- **Pitfalls**: layers that misalign between poses; a head that does not match body proportions; UI covering the character's face.
+- **Engines**: plain canvas or PixiJS, Phaser, Unity for mobile.
 
 ## Rhythm
-- **Loop**: hear the beat → hit on time → feedback grade → combo.
-- **Systems**: Web Audio clock as the single source of time (never `setTimeout`); chart as `[{t, lane}]`; timing windows (perfect/good/miss); latency calibration screen.
-- **Pitfalls**: drift from using frame time instead of `audioContext.currentTime`; licensed music (use original or CC0 tracks).
-
-## Card / deck builder
-- **Loop**: draw → play cards with a limited resource → resolve → add or remove a card after the fight.
-- **Systems**: deck/hand/discard arrays; card effects as small functions keyed by id; enemy intent shown in advance; seeded RNG for reproducible runs.
-- **Pitfalls**: too many keywords at once; unclear card text (show exact numbers).
+- **Loop**: hear the beat → hit on time → timing grade → build a combo.
+- **Systems**: the audio clock as the only timer (Web Audio `currentTime`, `AudioSettings.dspTime` in Unity); charts as timed notes; timing windows; latency calibration; chart editor.
+- **Pitfalls**: drift from using frame time; licensed music (use original or CC0 tracks).
+- **Engines**: Unity, Godot, Phaser.
+- **Read on GitHub**: ppy/osu.
 
 ## Idle / incremental
-- **Loop**: click or wait → buy a generator → numbers grow faster → prestige.
-- **Systems**: tick loop with delta time; costs scaling `base * rate^owned`; number formatting (1.2K, 3.4M); offline gains; prestige reset with a permanent multiplier.
-- **Pitfalls**: dead zones with nothing to buy; floating-point overflow past 1e308 (cap or use a big-number lib only when needed).
+- **Loop**: click or wait → buy a generator → numbers grow faster → prestige for a permanent bonus.
+- **Systems**: tick loop with delta time; costs `base * rate^owned`; number formatting (1.2K, 3.4M, scientific); offline progress; prestige layers; a big-number library for very large values.
+- **Pitfalls**: dead zones with nothing to buy; floating-point overflow; numbers without new mechanics.
+- **Engines**: plain web or Vue/React, Godot, Unity.
+- **Read on GitHub**: IvarK/AntimatterDimensionsSourceCode.
 
-## Local / online multiplayer
-- **Local**: shared keyboard or split touch zones; turn-based hot-seat is the simplest.
-- **Online**: needs a server; prefer turn-based over real-time. Keep game rules in one pure function `step(state, action)` that both client and server run. Ask the user before adding any backend, accounts or paid service.
-- **Pitfalls**: trusting the client for scores; no reconnect handling.
+## Horror
+- **Loop**: explore → sense danger → find a clue, tool or exit → tension spike → relief.
+- **Systems**: first-person or fixed camera; limited light and resources; sound as the main signal; a threat with readable rules (it hears noise, it hates light); scripted scares paced by tension.
+- **Pitfalls**: darkness that hides the path; jump scares without build-up; motion sickness (offer sensitivity and field-of-view settings).
+- **Engines**: Unity, Unreal, Godot; Three.js for browser horror.
 
-## Social deduction (werewolf / mafia)
-- **Loop**: secret role → night action → day discussion → vote someone out → reveal and suspicion shifts.
-- **Systems**: role table (Wolves, Seer, Witch, Hunter, Guard, Villagers) with setups by player count; timed night phases; private wolf chat; turn-based speaking; vote resolution; win checks after every death; a draw after N cycles; rule-based AI seats that can lie.
-- **Pitfalls**: leaking private info through the API; ambiguous interaction rules (write them down, e.g. guard + antidote cancel, poison ignores protection); phases that drag (offer a fast mode for AI seats).
+## Party and social deduction (werewolf, mafia, murder mystery, betrayal games)
+- **Loop**: secret roles or goals → private actions → open discussion → vote or accuse → reveal.
+- **Systems**: room codes and invite links; server-authoritative state; per-player private information; phases with timers; voting and win checks; bots for empty seats; spectators.
+- **Pitfalls**: leaking private information through the network; rules interactions left undefined; phases that drag; a mystery that cannot be solved from its clues.
+- **Engines**: web (Next.js or similar) with Colyseus, Socket.IO or boardgame.io; Unity or Godot with Nakama.
+- **Read on GitHub**: boardgameio/boardgame.io, colyseus/colyseus.
 
-## Murder mystery (剧本杀 / script game)
-- **Loop**: read your private script → search for clues → share or hide them → private talks → accuse with evidence.
-- **Systems**: fixed seats with private scripts (background, secret, timeline, personal goal); search locations with per-round clues; public case file; one-to-one whispers; secret accusation with suspect, key evidence and reasoning; a full reveal of the truth.
-- **Pitfalls**: a solution that cannot be deduced from the clues; timers that auto-skip humans (let players confirm before advancing); spoilers on replay (same culprit, warn players).
-
-## Negotiation and betrayal (prisoner's dilemma family)
-- **Loop**: negotiate in chat → lock in a secret move → simultaneous reveal → scores change → trust updates.
-- **Systems**: many small mode cards sharing one engine (move set and payoff table per mode); 3/5/7 rounds; whispers; recap with awards.
-- **Pitfalls**: a dominant strategy that makes talking pointless; unclear payoff tables (always show them).
-
-## Horror exploration / walking sim
-- **Loop**: explore → sense something is wrong → find the next clue or exit → tension spike → relief.
-- **Systems**: first-person movement; light and sound as the main tools (flicker, blackouts, drones); NPCs or entities that react to the player's attention; collectible lore cards or a quiz.
-- **Pitfalls**: darkness that hides everything (keep a readable path); jump scares without build-up; motion sickness (offer sensitivity and FOV settings).
-
-## Third-person action / survival
-- **Loop**: move through the world → enemies ambush → fight with timing and positioning → heal on kills → push further.
-- **Systems**: character controller and follow camera; melee arc hit detection with cooldowns; enemy archetypes (slow tank, fast runner, animal); spawn waves scaled by score; endless terrain recycling; health and score HUD; a friendly guide NPC for lore.
-- **Pitfalls**: unreadable attacks (telegraph wind-ups); enemies stuck on obstacles; difficulty that only ever goes up (add recovery moments).
-
-## Life sim / creature society
-- **Loop**: care for creatures → watch them act on their own → intervene (food, eggs, ideas) → see the society change.
-- **Systems**: needs (hunger, energy, social) on a tick; simple agents that wander, eat, sleep and meet; ideas or traits that spread and mutate on contact; scarcity pressure; an inspector panel with memories and stats.
-- **Pitfalls**: nothing changes without input (seed small random events); runaway population (tie growth to food).
+## Online multiplayer and MMO
+- **Loop**: depends on the genre; multiplayer adds cooperation, competition and a shared world.
+- **Systems**: authoritative server; client prediction and reconciliation (action games) or lockstep (strategy); matchmaking and rooms; persistence; anti-cheat basics (never trust the client).
+- **Pitfalls**: building multiplayer last; no reconnect handling; server costs (ask before adding paid hosting).
+- **Engines**: Colyseus or Socket.IO (web), Nakama (any engine), Unity Netcode, Godot high-level multiplayer.
+- **Read on GitHub**: mozilla/BrowserQuest (archived, small browser MMO), TrinityCore/TrinityCore.

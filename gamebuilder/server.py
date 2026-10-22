@@ -56,6 +56,9 @@ STACK_HINTS = [
 ]
 
 
+GENERIC = {"game", "games", "action", "online", "mobile", "builder", "creator", "simulation", "first", "person"}
+
+
 def pick_stack(idea: str) -> str:
     text = idea.lower()
     for stack, words in STACK_HINTS:
@@ -81,7 +84,8 @@ def plan_game(idea: str, stack: str = "") -> str:
     all_sections = sections()
     stack_key = next(iter(find_sections(stack, all_sections)), None) if stack else None
     stack_key = stack_key or next(k for k in all_sections if k.startswith(pick_stack(idea)))
-    genre_names = [k for k in sections_of("genres.md") if any(w in idea.lower() for w in re.findall(r"[a-z]{4,}", k))]
+    idea_words = set(re.findall(r"[a-z]+", idea.lower()))
+    genre_names = [k for k in sections_of("genres.md") if idea_words & (set(re.findall(r"[a-z]{4,}", k)) - GENERIC)]
     parts = [f"# Plan for: {idea}", f"Recommended stack: {stack_key}", guide("PLAYBOOK.md"), all_sections[stack_key]]
     parts += [all_sections[g] for g in genre_names[:3]] or ["No genre matched by name; call get_guide('genres') to pick the closest."]
     return "\n\n".join(parts)
