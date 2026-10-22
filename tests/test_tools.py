@@ -12,7 +12,11 @@ tmp = Path(tempfile.mkdtemp()).resolve()
 
 # Planning picks a stack from the idea and pulls matching guides.
 assert "Recommended stack: online multiplayer" in plan_game("a werewolf game friends join from their phones")
-assert "Recommended stack: three.js first person" in plan_game("a backrooms horror walk")
+assert "Recommended stack: godot" in plan_game("a first-person horror game")
+assert "Recommended stack: 3d web" in plan_game("a first-person horror game in the browser")
+assert "Recommended stack: unreal" in plan_game("an Unreal open world shooter")
+assert "Recommended stack: pygame" in plan_game("a retro game in python")
+assert "Recommended stack: visual novels" in plan_game("a dating sim")
 assert "Recommended stack: 2d web" in plan_game("an anime dress-up game")
 assert "Dress-up" in plan_game("an anime dress-up game")
 assert "## Card game" not in plan_game("a racing game")  # generic words do not match genres
