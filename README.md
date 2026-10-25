@@ -13,6 +13,7 @@ It draws on the genres that make up most of the game market and the engines most
 | `scaffold_game` | Writes a playable starter (2D web, Three.js first person, A-Frame world) with a GitHub Pages workflow; returns setup steps for Godot, Unity, Unreal, Bevy and other engines, and for multiplayer backends. Never overwrites a folder. |
 | `image_prompt` | Writes a layout-exact prompt for ChatGPT or another image model, so generated sprite sheets line up with the code. |
 | `check_game` | Finds missing asset files, JavaScript syntax errors and PNG sizes. |
+| `playtest_game` | Plays a web game in a headless browser with the keys and clicks the agent chooses, then hands back a screenshot, errors, failed loads and the game state before and after, so the agent can see what it built. |
 | `serve_game` | Serves the game at http://127.0.0.1 so you can play it. |
 
 It also offers the guides as resources (`gamebuilder://playbook`, `gamebuilder://stacks`, `gamebuilder://genres`) and a `new_game` prompt.
@@ -76,7 +77,7 @@ Ask your agent, for example:
 - "Set up a Unity tower defense game for mobile."
 - "Write the image prompt for a 4-frame walk cycle, 256 × 256 per frame."
 
-The agent plans, scaffolds, builds, checks and serves the game, and asks you what you see in the browser.
+The agent plans, scaffolds, builds, checks and playtests the game itself, then serves it for you to play. The first playtest downloads a headless Chromium (about 150 MB).
 
 ## Develop
 

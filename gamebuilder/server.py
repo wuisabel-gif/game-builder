@@ -4,15 +4,19 @@ The host agent (Claude Code, Codex, Cursor, ...) does the thinking and file edit
 own model; this server supplies the playbook, starters, art prompts, checks and a local server.
 """
 
+import asyncio
 import re
 import shutil
 import struct
 import subprocess
 import sys
+import threading
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from importlib.resources import files
 from pathlib import Path
 
-from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver import Image, MCPServer
 
 from . import __version__
 from .templates import PAGES_WORKFLOW, SETUP_STEPS, STARTERS
@@ -24,7 +28,7 @@ mcp = MCPServer(
     version=__version__,
     instructions=(
         "Game Builder helps you make games. Start a new game with plan_game, then follow its guidance: "
-        "pitch, scaffold_game, build the playable loop, check_game after each change, serve_game so the user can play. "
+        "pitch, scaffold_game, build the playable loop, check_game and playtest_game after each change, serve_game so the user can play. "
         "Use get_guide for any stack or genre, and image_prompt when the game needs generated art. "
         "Pass absolute folder paths."
     ),
@@ -251,6 +255,110 @@ def serve_game(folder: str, port: int = 8000) -> str:
         return f"Serving {web} at http://127.0.0.1:{port}/ . Ask the user to open it and say what they see."
 
 
+class QuietHandler(SimpleHTTPRequestHandler):
+    def log_message(self, *args):  # stdout and stderr belong to the MCP connection
+        pass
+
+
+ACTION = re.compile(r"^(press|hold|click|type|wait|advance):(.+)$")
+STATE_JS = "() => typeof window.render_game_to_text === 'function' ? String(window.render_game_to_text()) : null"
+
+
+async def launch_browser(playwright):
+    try:
+        return await playwright.chromium.launch()
+    except Exception as e:
+        if "Executable doesn't exist" not in str(e):
+            raise
+    # First run: download the headless browser, keeping its output off the MCP stdio channel.
+    proc = await asyncio.create_subprocess_exec(sys.executable, "-m", "playwright", "install", "chromium",
+                                                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
+    _, err = await proc.communicate()
+    if proc.returncode:
+        raise RuntimeError(f"could not install Chromium: {err.decode()[-400:]}")
+    return await playwright.chromium.launch()
+
+
+@mcp.tool(structured_output=False)
+async def playtest_game(folder: str, actions: list[str] | None = None, width: int = 1280, height: int = 800,
+                        page: str = "index.html") -> list:
+    """Play a web game in a headless browser and see the result: returns a screenshot taken after
+    the actions, console and page errors, failed asset loads, and the game's state from
+    window.render_game_to_text() before and after (when the game defines it).
+    Actions run in order: 'press:ArrowRight' taps a key, 'hold:KeyW:800' holds a key for 800 ms,
+    'click:320,200' clicks at page coordinates, 'type:hello' types text, 'wait:500' waits 500 ms,
+    'advance:1000' calls window.advanceTime(1000). Serves dist/ when present. Use an absolute path.
+    The first run downloads a headless Chromium (about 150 MB)."""
+    root = Path(folder).expanduser()
+    web = root / "dist" if (root / "dist" / "index.html").exists() else root
+    if not (web / page).is_file():
+        return [f"{web / page} does not exist."]
+    try:
+        from playwright.async_api import async_playwright
+    except ImportError:
+        return ["Playwright is not installed. Reinstall game-builder, which depends on it."]
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=str(web)))
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    errors, failed, notes = [], [], []
+    try:
+        async with async_playwright() as pw:
+            browser = await launch_browser(pw)
+            tab = await browser.new_page(viewport={"width": width, "height": height})
+            tab.on("console", lambda m: errors.append(f"console.{m.type}: {m.text}") if m.type in ("error", "warning") else None)
+            tab.on("pageerror", lambda e: errors.append(f"uncaught: {e}"))
+            tab.on("requestfailed", lambda r: failed.append(f"{r.url} ({r.failure})"))
+            tab.on("response", lambda r: failed.append(f"{r.url} (HTTP {r.status})") if r.status >= 400 else None)
+            await tab.goto(f"http://127.0.0.1:{httpd.server_address[1]}/{page}", wait_until="load")
+            # Let the game start its loop (two animation frames) and settle before acting.
+            await tab.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
+            await tab.wait_for_timeout(300)
+            before = await tab.evaluate(STATE_JS)
+            for action in actions or []:
+                match = ACTION.match(action.strip())
+                if not match:
+                    notes.append(f"skipped unknown action {action!r}")
+                    continue
+                kind, arg = match.groups()
+                try:
+                    if kind == "press":
+                        await tab.keyboard.press(arg)
+                    elif kind == "hold":
+                        key, _, ms = arg.rpartition(":")
+                        await tab.keyboard.down(key)
+                        await tab.wait_for_timeout(int(ms))
+                        await tab.keyboard.up(key)
+                    elif kind == "click":
+                        x, y = (float(v) for v in arg.split(","))
+                        await tab.mouse.click(x, y)
+                    elif kind == "type":
+                        await tab.keyboard.type(arg)
+                    elif kind == "wait":
+                        await tab.wait_for_timeout(int(arg))
+                    elif kind == "advance":
+                        ok = await tab.evaluate("ms => typeof window.advanceTime === 'function' && (window.advanceTime(ms), true)", int(arg))
+                        if not ok:
+                            notes.append("advance skipped: the game has no window.advanceTime")
+                except Exception as e:
+                    notes.append(f"{action!r} failed: {e}")
+            after = await tab.evaluate(STATE_JS)
+            shot = await tab.screenshot(type="png")
+            await browser.close()
+    except Exception as e:
+        return [f"Playtest could not run: {e}"]
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+    clip = lambda v: "not defined (add window.render_game_to_text to inspect state)" if v is None else v[:2000]
+    report = [f"Playtested {web / page} at {width}×{height} with {len(actions or [])} action(s)."]
+    report.append("Errors:\n" + "\n".join(f"- {e}" for e in errors[:30]) if errors else "No console or page errors.")
+    report.append("Failed loads:\n" + "\n".join(f"- {f}" for f in failed[:30]) if failed else "All files loaded.")
+    if notes:
+        report.append("Notes:\n" + "\n".join(f"- {n}" for n in notes))
+    report.append(f"State before: {clip(before)}\nState after: {clip(after)}")
+    report.append("The screenshot shows the page after the actions. Look at it before telling the user it works.")
+    return [Image(data=shot, format="png"), "\n\n".join(report)]
+
+
 @mcp.resource("gamebuilder://playbook", mime_type="text/markdown", description="How to pitch, build, art-direct, test and ship a game")
 def playbook_resource() -> str:
     return guide("PLAYBOOK.md")
@@ -270,7 +378,7 @@ def genres_resource() -> str:
 def new_game(idea: str) -> str:
     """Make a new game from an idea."""
     return (f"Let's make a game: {idea}\n\nCall plan_game with this idea, write a short pitch, then build it step by step: "
-            "scaffold_game, a playable loop first, check_game after each change, serve_game so I can play, "
+            "scaffold_game, a playable loop first, check_game and playtest_game after each change, serve_game so I can play, "
             "and image_prompt when it needs art. Keep a progress.md log.")
 
 

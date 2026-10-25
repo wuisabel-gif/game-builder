@@ -15,4 +15,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: uv run --python ${{ matrix.python }} --with . playwright install --with-deps chromium
       - run: uv run --python ${{ matrix.python }} --with . python tests/test_tools.py
