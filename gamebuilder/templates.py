@@ -101,7 +101,7 @@ THREEJS = {
 @media(pointer:coarse){#walk{display:block}}</style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head><body>
-<div id="start"><div><h1>__TITLE__</h1><p>Click to enter · WASD to walk · mouse to look · Esc to release</p></div></div>
+<div id="start"><div><h1>__TITLE__</h1><p>Click to enter · WASD to walk · mouse or drag to look · Esc to release</p></div></div>
 <button id="walk" aria-label="Walk forward">▲</button>
 <script type="module">
 import * as THREE from 'three';
@@ -109,7 +109,9 @@ import { PointerLockControls } from 'three/addons/controls/PointerLockControls.j
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1612); scene.fog = new THREE.Fog(0x1a1612, 2, 28);
-const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 100); camera.position.set(0, 1.6, 0);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 100);
+// Start at the west end of the open bottom corridor, looking east down its length.
+camera.position.set(-10.5, 1.6, 7.5); camera.rotation.y = -Math.PI / 2;
 const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 document.body.append(renderer.domElement);
 
@@ -128,9 +130,25 @@ const lantern = new THREE.PointLight(0xffd59a, 3, 12); camera.add(lantern); scen
 const lamps = [0, 1, 2].map(i => { const l = new THREE.PointLight(0xfff0c0, 2, 10); l.position.set((i - 1) * 6, 2.8, 0); scene.add(l); return l; });
 
 const controls = new PointerLockControls(camera, document.body);
-document.querySelector('#start').onclick = () => controls.lock();
-controls.addEventListener('lock', () => document.querySelector('#start').style.display = 'none');
-controls.addEventListener('unlock', () => document.querySelector('#start').style.display = 'grid');
+// Enter even where pointer lock is unavailable (phones, some browsers): look then works by dragging.
+const start = document.querySelector('#start');
+start.onclick = () => {
+  start.style.display = 'none';
+  try { document.body.requestPointerLock?.()?.catch?.(() => {}); } catch {}
+};
+controls.addEventListener('unlock', () => start.style.display = 'grid');
+let drag = null;
+const look = new THREE.Euler(0, 0, 0, 'YXZ');
+renderer.domElement.addEventListener('pointerdown', e => { if (!controls.isLocked) drag = { x: e.clientX, y: e.clientY }; });
+addEventListener('pointerup', () => drag = null);
+addEventListener('pointermove', e => {
+  if (!drag) return;
+  look.setFromQuaternion(camera.quaternion);
+  look.y -= (e.clientX - drag.x) * 0.005;
+  look.x = Math.max(-1.4, Math.min(1.4, look.x - (e.clientY - drag.y) * 0.005));
+  camera.quaternion.setFromEuler(look);
+  drag = { x: e.clientX, y: e.clientY };
+});
 const keys = new Set(); addEventListener('keydown', e => keys.add(e.code)); addEventListener('keyup', e => keys.delete(e.code));
 let touchWalk = false; const walk = document.querySelector('#walk');
 walk.onpointerdown = () => touchWalk = true; walk.onpointerup = walk.onpointerleave = () => touchWalk = false;
