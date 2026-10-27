@@ -213,16 +213,57 @@ window.render_game_to_text = () => JSON.stringify({ found: [...found] });
 """,
 }
 
+GODOT = {
+    "project.godot": """; Engine configuration file (Godot 4).
+config_version=5
+
+[application]
+
+config/name="__TITLE__"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=400
+window/stretch/mode="canvas_items"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+""",
+    "scenes/main.tscn": """[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+""",
+    "scripts/main.gd": 'extends Node2D\n# One script holds the whole starter loop. As the game grows, split the player,\n# pickups and UI into their own scenes and connect them with signals.\n\nconst SPEED := 220.0\nconst SAVE_PATH := "user://save.cfg"\n\nvar player := Vector2(320, 200)\nvar star := Vector2(120, 120)\nvar score := 0\nvar best := 0\nvar label := Label.new()\n\n\nfunc _ready() -> void:\n\tlabel.position = Vector2(12, 8)\n\tlabel.add_theme_color_override("font_color", Color("#29241f"))\n\tadd_child(label)\n\tvar save := ConfigFile.new()\n\tif save.load(SAVE_PATH) == OK:\n\t\tbest = int(save.get_value("game", "best", 0))\n\t_update_label()\n\n\nfunc _physics_process(delta: float) -> void:\n\tvar dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")\n\tdir += Vector2(\n\t\tfloat(Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_A)),\n\t\tfloat(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W)))\n\tvar size := get_viewport_rect().size\n\tplayer = (player + dir.limit_length(1.0) * SPEED * delta).clamp(Vector2(16, 16), size - Vector2(16, 16))\n\tif player.distance_to(star) < 28.0:\n\t\tscore += 1\n\t\tstar = Vector2(randf_range(30.0, size.x - 30.0), randf_range(30.0, size.y - 30.0))\n\t\tif score > best:\n\t\t\tbest = score\n\t\t\tvar save := ConfigFile.new()\n\t\t\tsave.set_value("game", "best", best)\n\t\t\tsave.save(SAVE_PATH)\n\t\t_update_label()\n\tqueue_redraw()\n\n\nfunc _draw() -> void:\n\tdraw_rect(get_viewport_rect(), Color("#fffaf0"))\n\tdraw_circle(star, 12.0, Color("#d9a441"))\n\tdraw_circle(player, 16.0, Color("#671d30"))\n\n\nfunc _update_label() -> void:\n\tlabel.text = "Score %d · Best %d" % [score, best]\n',
+    ".gitignore": ".godot/\n/android/\n*.tmp\n",
+    "README.md": """# __TITLE__
+
+A Godot 4 game. Arrow keys or WASD to move; catch the stars.
+
+Run: open Godot 4, choose Import, select `project.godot`, then press F5.
+Or from a terminal: `godot --path .`
+
+Web build: Project → Export → Add… → Web (install the export templates when asked),
+then upload the exported folder to itch.io or GitHub Pages.
+""",
+}
+
 STARTERS = {
     "web2d": (WEB2D, "dist", "python3 -m http.server 5174 --directory dist"),
     "threejs": (THREEJS, ".", "python3 -m http.server 8000"),
     "aframe": (AFRAME, ".", "python3 -m http.server 8000"),
+    "godot": (GODOT, None, "open the folder in Godot 4 (Import → project.godot) and press F5, or run `godot --path .`"),
 }
 
 # Stacks with a toolchain of their own: the agent sets these up by following the steps.
 SETUP_STEPS = {
-    "godot": "Install Godot 4.x and create the project in the editor (or write project.godot by hand). Put scenes in scenes/, scripts in scripts/, "
-             "data as .tres resources. Add an export preset for Web and a GitHub Action that exports headlessly. Follow the Godot section of the stacks guide.",
     "unity": "Create the project in Unity Hub. Add Input System and Cinemachine from the Package Manager, write scripts into Assets/Scripts, "
              "add a .gitignore for Library/ Temp/ Logs/ UserSettings/, enable Git LFS for models, and add a GameCI workflow (WebGL build to GitHub Pages).",
     "unreal": "Create the project from the Epic launcher (C++ template). Put gameplay classes in Source/, use Blueprints for tuning, and set up Git LFS. "

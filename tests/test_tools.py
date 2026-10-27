@@ -33,6 +33,10 @@ for stack in ("web2d", "threejs", "aframe"):
 assert "not empty" in scaffold_game(str(tmp / "web2d"), "web2d", "Again")
 assert "absolute" in scaffold_game("relative/path", "web2d", "X")
 assert "no files were written" in scaffold_game(str(tmp / "u"), "unity", "X")
+godot = scaffold_game(str(tmp / "godot"), "godot", "Star Catch")
+assert "project.godot" in godot and "Godot 4" in godot and "pages.yml" not in godot, godot
+assert 'run/main_scene="res://scenes/main.tscn"' in (tmp / "godot/project.godot").read_text()
+assert (tmp / "godot/scripts/main.gd").read_text().count("\n\t") > 10  # GDScript indents with tabs
 assert "__TITLE__" not in (tmp / "web2d/dist/index.html").read_text()
 
 # Checks find broken references.
