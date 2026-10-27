@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "Isabel Wu" }]
-dependencies = ["mcp>=2.3"]
+dependencies = ["mcp>=2.3", "playwright>=1.45"]
 
 [project.scripts]
 game-builder = "gamebuilder.server:main"

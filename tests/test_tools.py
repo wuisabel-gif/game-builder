@@ -6,7 +6,7 @@ from pathlib import Path
 
 from mcp import Client, StdioServerParameters
 
-from gamebuilder.server import check_game, get_guide, image_prompt, plan_game, scaffold_game
+from gamebuilder.server import check_game, get_guide, image_prompt, plan_game, playtest_game, scaffold_game
 
 tmp = Path(tempfile.mkdtemp()).resolve()
 
@@ -39,6 +39,20 @@ assert "__TITLE__" not in (tmp / "web2d/dist/index.html").read_text()
 (tmp / "web2d/dist/app.js").write_text((tmp / "web2d/dist/app.js").read_text() + "\nnew Image().src = 'assets/missing.png';\n")
 assert "assets/missing.png" in check_game(str(tmp / "web2d"))
 
+# Playtesting drives the game in a headless browser and reports what happened.
+import json
+shot, report = asyncio.run(playtest_game(str(tmp / "web2d"), ["hold:ArrowRight:600", "advance:200", "bogus"]))
+assert shot.to_image_content().data and "skipped unknown action" in report, report
+before = json.loads(report.split("State before: ")[1].split("\n")[0])
+after = json.loads(report.split("State after: ")[1].split("\n")[0])
+assert after["x"] > before["x"], (before, after)
+assert "assets/missing.png" in report  # the broken reference added above shows up as a failed load
+broken = tmp / "broken"
+broken.mkdir()
+(broken / "index.html").write_text("<script>nope(</script>")
+assert "uncaught" in asyncio.run(playtest_game(str(broken)))[1]
+assert "does not exist" in asyncio.run(playtest_game(str(tmp / "nothing-here")))[0]
+
 prompt = image_prompt("two characters", columns=4, cell_width=543, cell_height=724, cells=["a", "b", "c", "d"], change="the face")
 assert "Canvas 2172 × 724 px" in prompt and "Change only this: the face" in prompt
 
@@ -47,7 +61,7 @@ assert "Canvas 2172 × 724 px" in prompt and "Change only this: the face" in pro
 async def over_stdio():
     async with Client(StdioServerParameters(command=sys.executable, args=["-m", "gamebuilder.server"])) as client:
         names = {t.name for t in (await client.list_tools()).tools}
-        assert names == {"plan_game", "get_guide", "scaffold_game", "image_prompt", "check_game", "serve_game"}, names
+        assert names == {"plan_game", "get_guide", "scaffold_game", "image_prompt", "check_game", "playtest_game", "serve_game"}, names
         result = await client.call_tool("get_guide", {"topic": "werewolf"})
         assert "social deduction" in result.content[0].text
         assert len((await client.list_resources()).resources) == 3
