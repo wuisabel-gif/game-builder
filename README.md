@@ -33,24 +33,24 @@ The genre guide covers 21 genres: action/platformer, roguelike, RPG, shooter, su
 
 ## Install
 
-Needs [uv](https://docs.astral.sh/uv/) (or Python 3.10+ with pipx). The server runs with:
+Needs [uv](https://docs.astral.sh/uv/) (or Python 3.10+ with pipx). The server is on PyPI as [`game-builder-mcp`](https://pypi.org/project/game-builder-mcp/) and runs with:
 
 ```
-uvx --from git+https://github.com/wuisabel-gif/game-builder game-builder
+uvx game-builder-mcp
 ```
 
 Add it to your agent:
 
 **Claude Code**
 ```
-claude mcp add game-builder -- uvx --from git+https://github.com/wuisabel-gif/game-builder game-builder
+claude mcp add game-builder -- uvx game-builder-mcp
 ```
 
 **Codex** (`~/.codex/config.toml`)
 ```toml
 [mcp_servers.game-builder]
 command = "uvx"
-args = ["--from", "git+https://github.com/wuisabel-gif/game-builder", "game-builder"]
+args = ["game-builder-mcp"]
 ```
 
 **Cursor** (`.cursor/mcp.json`), **Windsurf**, **Claude Desktop** and most other clients use the same JSON shape:
@@ -59,13 +59,15 @@ args = ["--from", "git+https://github.com/wuisabel-gif/game-builder", "game-buil
   "mcpServers": {
     "game-builder": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/wuisabel-gif/game-builder", "game-builder"]
+      "args": ["game-builder-mcp"]
     }
   }
 }
 ```
 
 **Gemini CLI** (`~/.gemini/settings.json`): the same `mcpServers` block.
+
+To run the latest code from GitHub instead of the PyPI release, use `uvx --from git+https://github.com/wuisabel-gif/game-builder game-builder-mcp`.
 
 ## Use
 
@@ -84,6 +86,8 @@ The agent plans, scaffolds, builds, checks and playtests the game itself, then s
 ```
 uv run --with . python tests/test_tools.py
 ```
+
+Releases: bump `__version__` in `gamebuilder/__init__.py`, merge, then publish a GitHub release tagged `v<version>`. The Publish workflow builds the package and uploads it to PyPI with trusted publishing.
 
 ## License
 

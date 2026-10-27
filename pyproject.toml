@@ -3,20 +3,35 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "game-builder"
-version = "0.3.0"
+name = "game-builder-mcp"
+dynamic = ["version"]
 description = "An MCP server that helps any coding agent build games in any genre, with 2D/3D web, Godot, Unity, Unreal, Bevy and more."
 readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [{ name = "Isabel Wu" }]
+keywords = ["mcp", "model-context-protocol", "game-development", "gamedev", "godot", "phaser", "threejs", "ai-agents"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Games/Entertainment",
+    "Topic :: Software Development :: Code Generators",
+]
 dependencies = ["mcp>=2.3", "playwright>=1.45"]
 
 [project.scripts]
+game-builder-mcp = "gamebuilder.server:main"
 game-builder = "gamebuilder.server:main"
 
 [project.urls]
+Homepage = "https://github.com/wuisabel-gif/game-builder"
 Repository = "https://github.com/wuisabel-gif/game-builder"
+Issues = "https://github.com/wuisabel-gif/game-builder/issues"
+
+[tool.hatch.version]
+path = "gamebuilder/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["gamebuilder"]

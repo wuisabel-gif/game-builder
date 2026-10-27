@@ -243,8 +243,7 @@ wheels = [
 ]
 
 [[package]]
-name = "game-builder"
-version = "0.3.0"
+name = "game-builder-mcp"
 source = { editable = "." }
 dependencies = [
     { name = "mcp" },
