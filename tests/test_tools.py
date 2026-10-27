@@ -50,6 +50,30 @@ assert shot.to_image_content().data and "skipped unknown action" in report, repo
 before = json.loads(report.split("State before: ")[1].split("\n")[0])
 after = json.loads(report.split("State after: ")[1].split("\n")[0])
 assert after["x"] > before["x"], (before, after)
+
+
+async def arrow_keys_do_not_scroll(folder):
+    """In a window shorter than the page, the game's arrow keys must move the player, not the page."""
+    import threading
+    from functools import partial
+    from http.server import ThreadingHTTPServer
+    from playwright.async_api import async_playwright
+    from gamebuilder.server import QuietHandler
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=str(folder)))
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch()
+        page = await browser.new_page(viewport={"width": 800, "height": 300})
+        await page.goto(f"http://127.0.0.1:{httpd.server_address[1]}/index.html")
+        await page.keyboard.down("ArrowDown")
+        await page.wait_for_timeout(400)
+        await page.keyboard.up("ArrowDown")
+        scrolled = await page.evaluate("scrollY")
+        await browser.close()
+    httpd.shutdown()
+    return scrolled
+
+assert asyncio.run(arrow_keys_do_not_scroll(tmp / "web2d/dist")) == 0
 assert "assets/missing.png" in report  # the broken reference added above shows up as a failed load
 broken = tmp / "broken"
 broken.mkdir()
