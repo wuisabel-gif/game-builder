@@ -1,0 +1,20 @@
+name: Publish to PyPI
+# Runs when a GitHub release is published. Uses PyPI trusted publishing: no API token is stored.
+on:
+  release:
+    types: [published]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Check the release tag matches the package version
+        run: |
+          VERSION=$(uv run --no-project python -c "import re;print(re.search(r'__version__ = \"(.+)\"', open('gamebuilder/__init__.py').read())[1])")
+          test "v$VERSION" = "${{ github.event.release.tag_name }}" || { echo "Tag ${{ github.event.release.tag_name }} does not match version $VERSION"; exit 1; }
+      - run: uv build
+      - uses: pypa/gh-action-pypi-publish@release/v1
