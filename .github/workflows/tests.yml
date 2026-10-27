@@ -17,3 +17,18 @@ jobs:
           node-version: 22
       - run: uv run --python ${{ matrix.python }} --with . playwright install --with-deps chromium
       - run: uv run --python ${{ matrix.python }} --with . python tests/test_tools.py
+  godot-starter:
+    # Generate the Godot starter and run it headless in real Godot; fail on any script or engine error.
+    runs-on: ubuntu-latest
+    env:
+      GODOT: Godot_v4.7.2-stable_linux.x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run --with . python -c "from gamebuilder.server import scaffold_game; print(scaffold_game('/tmp/starter', 'godot', 'CI Game'))"
+      - run: |
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/4.7.2-stable/$GODOT.zip"
+          unzip -q godot.zip
+          ./$GODOT --headless --path /tmp/starter --import 2>&1 | tee import.log
+          ./$GODOT --headless --path /tmp/starter --quit-after 120 2>&1 | tee run.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" import.log run.log
