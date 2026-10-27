@@ -10,7 +10,7 @@ It draws on the genres that make up most of the game market and the engines most
 |---|---|
 | `plan_game` | Picks a stack for the idea and returns the playbook plus the matching stack and genre guides, so the agent can pitch before building. |
 | `get_guide` | Any stack or genre on demand: "godot", "unity", "three.js", "roguelike", "tower defense"… |
-| `scaffold_game` | Writes a playable starter (2D web, Three.js first person, A-Frame world) with a GitHub Pages workflow; returns setup steps for Godot, Unity, Unreal, Bevy and other engines, and for multiplayer backends. Never overwrites a folder. |
+| `scaffold_game` | Writes a playable starter (2D web, Three.js first person, A-Frame world, Godot 4) — web starters include a GitHub Pages workflow; returns setup steps for Unity, Unreal, Bevy and other engines, and for multiplayer backends. Never overwrites a folder. |
 | `image_prompt` | Writes a layout-exact prompt for ChatGPT or another image model, so generated sprite sheets line up with the code. |
 | `check_game` | Finds missing asset files, JavaScript syntax errors and PNG sizes. |
 | `playtest_game` | Plays a web game in a headless browser with the keys and clicks the agent chooses, then hands back a screenshot, errors, failed loads and the game state before and after, so the agent can see what it built. |

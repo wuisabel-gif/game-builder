@@ -20,7 +20,7 @@ with a link; a desktop or console game needs an engine.
 
 ## Godot (GDScript or C#)
 - **Choose for**: most 2D games and small-to-mid 3D games on desktop, mobile and web; the most-starred open-source engine (godotengine/godot).
-- **Start**: create the project in the Godot editor; scenes as reusable nodes; scripts in GDScript. Read godotengine/godot-demo-projects, GDQuest/godot-open-rpg and godotengine/tps-demo.
+- **Start**: `scaffold_game` with stack `godot` writes a playable Godot 4 project (or create one in the editor); scenes as reusable nodes; scripts in GDScript. Read godotengine/godot-demo-projects, GDQuest/godot-open-rpg and godotengine/tps-demo.
 - **Core**: signals over direct references; autoloads only for truly global state; resources (`.tres`) for data such as items and enemies; `_physics_process` for movement.
 - **Ship**: export templates for Windows, macOS, Linux, Android, iOS and Web; a GitHub Action (for example with a headless Godot export) builds every push; web exports deploy to GitHub Pages or itch.io.
 - **Watch out**: Godot 3 and Godot 4 APIs differ (target 4.x); C# projects cannot export to web; keep scene files small so merges stay easy.

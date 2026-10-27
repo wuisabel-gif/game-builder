@@ -129,7 +129,7 @@ def get_guide(topic: str) -> str:
 @mcp.tool()
 def scaffold_game(folder: str, stack: str, title: str) -> str:
     """Create a playable starter in an empty or new folder. `stack` is one of: web2d, threejs,
-    aframe (files are written), or godot, unity, unreal, bevy, monogame, libgdx, raylib, love, pygame,
+    aframe, godot (files are written), or unity, unreal, bevy, monogame, libgdx, raylib, love, pygame,
     flame, renpy, multiplayer (setup steps are returned).
     Use an absolute folder path."""
     stack = stack.lower().strip()
@@ -145,14 +145,15 @@ def scaffold_game(folder: str, stack: str, title: str) -> str:
     tree, publish, run = STARTERS[stack]
     slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-") or "game"
     written = []
-    for rel, text in {**tree, ".github/workflows/pages.yml": PAGES_WORKFLOW.replace("__PATH__", publish),
-                      "progress.md": f"# {title}\n\nStarted from the Game Builder {stack} starter.\n"}.items():
+    extra = {".github/workflows/pages.yml": PAGES_WORKFLOW.replace("__PATH__", publish)} if publish else {}
+    for rel, text in {**tree, **extra, "progress.md": f"# {title}\n\nStarted from the Game Builder {stack} starter.\n"}.items():
         path = root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text.replace("__TITLE__", title).replace("__SLUG__", slug), encoding="utf-8")
         written.append(rel)
     return (f"Created {title} in {root}:\n" + "\n".join(f"- {w}" for w in written)
-            + f"\n\nRun it: cd {root} && {run}  (or call serve_game). Next: replace the placeholder loop with the game's core loop.")
+            + (f"\n\nRun it: cd {root} && {run}  (or call serve_game)." if publish else f"\n\nRun it: {run}.")
+            + " Next: replace the placeholder loop with the game's core loop.")
 
 
 @mcp.tool()
