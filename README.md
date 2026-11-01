@@ -4,6 +4,10 @@ An MCP server that helps any coding agent build games. Plug it into Claude Code,
 
 It draws on the genres that make up most of the game market and the engines most used for games on GitHub, with open-source games to learn from in each genre.
 
+![An agent using Game Builder: plan, scaffold and playtest a 2D star-catching game, then a Three.js corridor](docs/demo.gif)
+
+*Real tool calls and output. The agent plans and scaffolds a 2D game, playtests it in a headless browser, then does the same for a first-person corridor. Regenerate with `uv run --with . --with pillow python docs/make_demo.py`.*
+
 ## What your agent gets
 
 | Tool | What it does |
