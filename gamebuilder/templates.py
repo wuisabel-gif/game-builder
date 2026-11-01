@@ -53,7 +53,10 @@ try { const saved = JSON.parse(localStorage.getItem('__SLUG__') || 'null'); if (
 const save = () => { try { localStorage.setItem('__SLUG__', JSON.stringify({ best: state.best })); } catch {} };
 const keys = new Set(), speed = 220;
 let target = null;
-addEventListener('keydown', e => keys.add(e.key.toLowerCase()));
+addEventListener('keydown', e => {
+  keys.add(e.key.toLowerCase());
+  if (e.key.startsWith('Arrow') || e.key === ' ') e.preventDefault(); // game keys must not scroll the page
+});
 addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 canvas.addEventListener('pointerdown', e => { const r = canvas.getBoundingClientRect(); target = { x: (e.clientX - r.left) * canvas.width / r.width, y: (e.clientY - r.top) * canvas.height / r.height }; });
 
